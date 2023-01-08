@@ -1,0 +1,121 @@
+---
+title: "Final_Project"
+author: "Johanne"
+date: "2023-01-08"
+output: html_document
+---
+
+#First load all the necessary libraries.
+```{r libraries, warning=FALSE, message=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(hrbrthemes)
+```
+
+#Read the CSV-file and convert it into a data frame.
+```{r}
+cause_dk <- read_csv("Disease_DK.csv")
+
+cause_dk
+```
+
+#Clean the data frama, but creating three different columns without the semicolons.
+#Mutate the data in the new "Count"-column into numeric.
+```{r}
+cause_disease <- cause_dk %>% 
+  separate(1, c("Cause_of_Death", "Year", "Count"))  %>% 
+  mutate_at(c("Count"), as.numeric)
+
+cause_disease
+```
+
+#Let's make the first graph, showing the causes of deaths in 1990.
+```{r}
+cause_disease%>% 
+  filter(Year %in% c("1990")) %>% 
+   group_by(Year,
+           Cause_of_Death,
+           Count) %>% 
+  tally() %>% 
+  ggplot(aes(x = Cause_of_Death,
+             y = Count,
+             fill = Cause_of_Death)) + 
+    geom_bar(position="dodge", stat="identity") +
+  scale_y_continuous(breaks = seq(0, 100, 10),
+                     labels = seq(0, 100, 10)) +
+  theme_minimal(base_size = 10) +
+    scale_fill_hue(c = 40) +
+  theme(legend.position="none") +
+  coord_flip() +
+  labs(title = "1990", 
+       y = "Count",
+       x = "Disease") +
+  scale_y_continuous(breaks=seq(0,30000,2500))
+```
+#	If the line filter(Year %in% c("1990")) is changed into filter(Year %in% c("2019")), then the graph will show the causes of deaths in 2019, making it possible to compare the data from those two years.
+```{r}
+cause_disease%>% 
+  filter(Year %in% c("2019")) %>% 
+   group_by(Year,
+           Cause_of_Death,
+           Count) %>% 
+  tally() %>% 
+  ggplot(aes(x = Cause_of_Death,
+             y = Count,
+             fill = Cause_of_Death)) + 
+    geom_bar(position="dodge", stat="identity") +
+  scale_y_continuous(breaks = seq(0, 100, 10),
+                     labels = seq(0, 100, 10)) +
+  theme_minimal(base_size = 10) +
+    scale_fill_hue(c = 40) +
+  theme(legend.position="none") +
+  coord_flip() +
+  labs(title = "2019", 
+       y = "Count",
+       x = "Disease") +
+  scale_y_continuous(breaks=seq(0,30000,2500))
+```
+
+#Check the development the number of deaths by neoplasms throughout the years.
+```{r}
+cause_disease%>% 
+  filter(Cause_of_Death %in% c("Neoplasms")) %>% 
+  filter(Year %in% c("1990", "1992", "1994", "1996", "1998", "2000", "2002", "2004", "2006", "2008", "2010", "2012", "2014", "2016", "2019")) %>% 
+  tail(15) %>%
+  ggplot( aes(x=Year, y=Count, group=Cause_of_Death)) +
+    geom_line( color="#69b3a2") +
+    geom_point(shape=21, color="black", fill="#69b3a2", size=3) +
+    theme_ipsum() +
+  ggtitle("Neoplasms")
+```
+#What about the development of AIDS?
+```{r}
+cause_disease%>% 
+  filter(Cause_of_Death %in% c("AIDS")) %>% 
+  filter(Year %in% c("1990", "1992", "1994", "1996", "1998", "2000", "2002", "2004", "2006", "2008", "2010", "2012", "2014", "2016", "2019")) %>% 
+  tail(15) %>%
+  ggplot( aes(x=Year, y=Count, group=Cause_of_Death)) +
+    geom_line( color="#69b3a2") +
+    geom_point(shape=21, color="black", fill="#69b3a2", size=3) +
+    theme_ipsum() +
+  ggtitle("AIDS")
+```
+#In the end, a new graph will be made to compare the development throughout the 30 years of the three biggest causes of death in 1990.
+
+```{r}
+cause_disease%>% 
+  filter(Year %in% c("1990", "2000", "2010", "2019")) %>% 
+  filter(Cause_of_Death %in% c("CardiovascularDiseases", "Neoplasms", "ChronicRespiratoryDiseases")) %>%
+  group_by(Count,
+           Year,
+           Cause_of_Death) %>% 
+  tally() %>% 
+  ggplot(aes(x = Year,
+             y = Count,
+             fill = Cause_of_Death)) + 
+  geom_bar(position="dodge", stat="identity", width=0.8) +
+  theme_minimal(base_size = 10) +
+  scale_fill_hue(c = 35) +
+  scale_y_continuous(breaks=seq(0,30000,2500))
+```
